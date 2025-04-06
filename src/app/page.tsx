@@ -275,8 +275,9 @@ export default function Home() {
         } catch (error: unknown) {
             console.error("Login failed:", error);
             let message = "Login failed. Please check your credentials.";
-            if (error instanceof Error && 'error_description' in error) {
-                 message = (error as any).error_description || error.message || message; // Supabase might have error_description
+            // Check if error is an object and has error_description before accessing
+            if (typeof error === 'object' && error !== null && 'error_description' in error && typeof (error as { error_description?: unknown }).error_description === 'string') {
+                message = (error as { error_description: string }).error_description || (error instanceof Error ? error.message : message);
             } else if (error instanceof Error) {
                  message = error.message || message;
             }
@@ -306,8 +307,9 @@ export default function Home() {
         } catch (error: unknown) {
             console.error("Registration failed:", error);
             let message = "Registration failed. Please try again.";
-             if (error instanceof Error && 'error_description' in error) {
-                 message = (error as any).error_description || error.message || message; // Supabase might have error_description
+            // Check if error is an object and has error_description before accessing
+            if (typeof error === 'object' && error !== null && 'error_description' in error && typeof (error as { error_description?: unknown }).error_description === 'string') {
+                message = (error as { error_description: string }).error_description || (error instanceof Error ? error.message : message);
             } else if (error instanceof Error) {
                  message = error.message || message;
             }
