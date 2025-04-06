@@ -188,91 +188,7 @@ export default function Home() {
         setInterfaceLanguage(prevLang => prevLang === 'en' ? 'es' : 'en');
     };
 
-    useEffect(() => {
-        // Check initial session
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-        });
-
-        // Listen for auth state changes
-        const { data: authListener } = supabase.auth.onAuthStateChange(
-            async (event: AuthChangeEvent, session: Session | null) => {
-                setSession(session);
-                setUser(session?.user ?? null);
-                // Reset app state if user logs out
-                if (event === 'SIGNED_OUT') {
-                    handleNewQuiz(); // Reset quiz state
-                    setCurrentView('input'); // Go back to input view
-                }
-            }
-        );
-
-        // Cleanup listener on component unmount
-        return () => {
-            authListener?.subscription.unsubscribe();
-        };
-    }, []);
-
-
-    // --- Auth Handlers ---
-    const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        setAuthLoading(true);
-        setAuthError(null);
-        try {
-            const { error } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
-            if (error) throw error;
-            // Session update is handled by the listener
-        } catch (error: any) {
-            console.error("Login failed:", error);
-            setAuthError(error.error_description || error.message || "Login failed. Please check your credentials.");
-        } finally {
-            setAuthLoading(false);
-        }
-    };
-
-    const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        setAuthLoading(true);
-        setAuthError(null);
-        try {
-            const { error } = await supabase.auth.signUp({
-                email,
-                password,
-                // You can add options for email confirmation if needed
-                // options: {
-                //   emailRedirectTo: window.location.origin,
-                // },
-            });
-            if (error) throw error;
-            // User will be logged in automatically after successful sign up
-            // Or prompt them to check email if confirmation is required
-            alert('Registration successful! You are now logged in.'); // Simple feedback - TODO: Translate this alert
-        } catch (error: any) {
-            console.error("Registration failed:", error);
-            setAuthError(error.error_description || error.message || "Registration failed. Please try again.");
-        } finally {
-            setAuthLoading(false);
-        }
-    };
-
-     const handleLogout = async () => {
-        setAuthLoading(true);
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-            console.error('Error logging out:', error);
-            setAuthError('Failed to log out.'); // TODO: Translate this error
-        }
-        // State updates (session=null, user=null) are handled by the listener
-        setAuthLoading(false);
-    };
-
-
-    // --- Timer Logic ---
+    // --- Timer Logic --- Moved up
     const stopTimer = useCallback(() => {
         if (timerIntervalId) {
             clearInterval(timerIntervalId);
@@ -302,6 +218,117 @@ export default function Home() {
         setTimerIntervalId(intervalId);
     }, [stopTimer]); // Add dependencies
 
+    // Moved handleNewQuiz definition before the useEffect that uses it
+    const handleNewQuiz = useCallback(() => {
+        setQuizData(null);
+        setInputText('');
+        setUserAnswers([]);
+        setCurrentQuestionIndex(0);
+        setScore(0);
+        setError(null);
+        setIsLoading(false);
+        stopTimer();
+        // Reset settings to default or keep current? Let's keep current for now.
+        // setQuizSettings({ numQuestions: 5, timeLimitMinutes: 10, questionFormat: 'mixed', language: 'English' });
+        setCurrentView('input');
+    }, [stopTimer]); // Add stopTimer as dependency
+
+    useEffect(() => {
+        // Check initial session
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+            setUser(session?.user ?? null);
+        });
+
+        // Listen for auth state changes
+        const { data: authListener } = supabase.auth.onAuthStateChange(
+            async (event: AuthChangeEvent, session: Session | null) => {
+                setSession(session);
+                setUser(session?.user ?? null);
+                // Reset app state if user logs out
+                if (event === 'SIGNED_OUT') {
+                    handleNewQuiz(); // Reset quiz state
+                    setCurrentView('input'); // Go back to input view
+                }
+            }
+        );
+
+        // Cleanup listener on component unmount
+        return () => {
+            authListener?.subscription.unsubscribe();
+        };
+    }, [handleNewQuiz]); // Added handleNewQuiz
+
+
+    // --- Auth Handlers ---
+    const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setAuthLoading(true);
+        setAuthError(null);
+        try {
+            const { error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+            if (error) throw error;
+            // Session update is handled by the listener
+        } catch (error: unknown) {
+            console.error("Login failed:", error);
+            let message = "Login failed. Please check your credentials.";
+            if (error instanceof Error && 'error_description' in error) {
+                 message = (error as any).error_description || error.message || message; // Supabase might have error_description
+            } else if (error instanceof Error) {
+                 message = error.message || message;
+            }
+            setAuthError(message);
+        } finally {
+            setAuthLoading(false);
+        }
+    };
+
+    const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setAuthLoading(true);
+        setAuthError(null);
+        try {
+            const { error } = await supabase.auth.signUp({
+                email,
+                password,
+                // You can add options for email confirmation if needed
+                // options: {
+                //   emailRedirectTo: window.location.origin,
+                // },
+            });
+            if (error) throw error;
+            // User will be logged in automatically after successful sign up
+            // Or prompt them to check email if confirmation is required
+            alert('Registration successful! You are now logged in.'); // Simple feedback - TODO: Translate this alert
+        } catch (error: unknown) {
+            console.error("Registration failed:", error);
+            let message = "Registration failed. Please try again.";
+             if (error instanceof Error && 'error_description' in error) {
+                 message = (error as any).error_description || error.message || message; // Supabase might have error_description
+            } else if (error instanceof Error) {
+                 message = error.message || message;
+            }
+            setAuthError(message);
+        } finally {
+            setAuthLoading(false);
+        }
+    };
+
+     const handleLogout = async () => {
+        setAuthLoading(true);
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+            console.error('Error logging out:', error);
+            setAuthError('Failed to log out.'); // TODO: Translate this error
+        }
+        // State updates (session=null, user=null) are handled by the listener
+        setAuthLoading(false);
+    };
+
+    // --- Timer Cleanup Effect --- Moved down slightly
     useEffect(() => {
         // Cleanup timer on component unmount or view change away from quiz
         return () => {
@@ -354,9 +381,13 @@ export default function Home() {
             setCurrentView('quiz');
             startTimer(quizSettings.timeLimitMinutes * 60);
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Quiz generation failed:", err);
-            setError(`Quiz generation failed: ${err.message}`); // TODO: Translate prefix
+            let message = "An unknown error occurred during quiz generation.";
+            if (err instanceof Error) {
+                message = err.message;
+            }
+            setError(`Quiz generation failed: ${message}`); // TODO: Translate prefix
             setIsLoading(false);
             setCurrentView('input'); // Go back to input on error
         }
@@ -420,21 +451,6 @@ export default function Home() {
         setCurrentView('quiz');
         startTimer(quizToRetake.settings.timeLimitMinutes * 60);
     };
-
-     const handleNewQuiz = () => {
-        setQuizData(null);
-        setInputText('');
-        setUserAnswers([]);
-        setCurrentQuestionIndex(0);
-        setScore(0);
-        setError(null);
-        setIsLoading(false);
-        stopTimer();
-        // Reset settings to default or keep current? Let's keep current for now.
-        // setQuizSettings({ numQuestions: 5, timeLimitMinutes: 10, questionFormat: 'mixed', language: 'English' });
-        setCurrentView('input');
-    };
-
 
     // --- Render Logic ---
     const renderView = () => {

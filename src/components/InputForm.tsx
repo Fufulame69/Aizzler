@@ -25,7 +25,7 @@ interface InputFormProps {
 }
 
 const InputForm: React.FC<InputFormProps> = ({
-    lang, // Destructure lang
+    // lang, // Removed - Not used directly
     t,    // Destructure t
     inputText,
     setInputText,

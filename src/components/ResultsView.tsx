@@ -35,7 +35,7 @@ interface ResultsViewProps {
 }
 
 const ResultsView: React.FC<ResultsViewProps> = ({
-    lang, // Destructure lang
+    // lang, // Removed - Not used directly
     t,    // Destructure t
     quizData,
     userAnswers,
@@ -93,10 +93,14 @@ const ResultsView: React.FC<ResultsViewProps> = ({
             setSaveSuccess(true);
             // Optionally clear error on success: setSaveError(null);
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Error saving quiz result:", err);
+            let message = "An unknown error occurred.";
+            if (err instanceof Error) {
+                message = err.message;
+            }
              // Use translated generic error prefix
-            setSaveError(`${t.saveError}: ${err.message}`);
+            setSaveError(`${t.saveError}: ${message}`);
             setSaveSuccess(false); // Ensure success state is false on error
         } finally {
             setIsSaving(false);

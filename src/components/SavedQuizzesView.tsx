@@ -36,7 +36,7 @@ interface SavedQuizzesViewProps {
 }
 
 const SavedQuizzesView: React.FC<SavedQuizzesViewProps> = ({
-    lang, // Destructure lang
+    // lang, // Removed - Not used directly
     t,    // Destructure t
     user, // Add user prop
     onRetake,
@@ -82,10 +82,14 @@ const SavedQuizzesView: React.FC<SavedQuizzesViewProps> = ({
                 // You might need to transform the data if the DB structure differs
                 setSavedQuizzes(data as SavedQuizRecord[]);
 
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error("Error fetching saved quizzes:", err);
+                let message = "An unknown error occurred.";
+                if (err instanceof Error) {
+                    message = err.message;
+                }
                  // Use translated error prefix
-                setError(`${t.errorLoadingQuizzes}: ${err.message}`);
+                setError(`${t.errorLoadingQuizzes}: ${message}`);
                 setSavedQuizzes([]); // Clear quizzes on error
             } finally {
                 setIsLoading(false);
@@ -93,7 +97,7 @@ const SavedQuizzesView: React.FC<SavedQuizzesViewProps> = ({
         };
 
         fetchQuizzes();
-    }, [user]); // Re-fetch when user changes (login/logout)
+    }, [user, t.errorLoadingQuizzes, t.loginToViewError]); // Added dependencies
 
 
     // Handle quiz deletion internally
@@ -124,10 +128,14 @@ const SavedQuizzesView: React.FC<SavedQuizzesViewProps> = ({
              setSavedQuizzes(prev => prev.filter(q => q.id !== idToDelete));
              setError(null); // Clear any previous errors
 
-         } catch (err: any) {
+         } catch (err: unknown) {
              console.error("Error deleting quiz:", err);
+             let message = "An unknown error occurred.";
+             if (err instanceof Error) {
+                 message = err.message;
+             }
               // Use translated error prefix
-             setError(`${t.deleteError}: ${err.message}`);
+             setError(`${t.deleteError}: ${message}`);
              // Optional: Re-fetch quizzes or revert optimistic update if it failed
          }
     };

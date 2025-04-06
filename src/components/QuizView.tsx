@@ -28,7 +28,7 @@ interface QuizViewProps {
 }
 
 const QuizView: React.FC<QuizViewProps> = ({
-    lang, // Destructure lang
+    // lang, // Removed - Not used directly
     t,    // Destructure t
     quizData,
     currentQuestionIndex,

@@ -135,10 +135,13 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Failed to parse quiz data from API response." }, { status: 500 });
         }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error in /api/generate-quiz:", error);
         // Provide a more specific error message if possible
-        const errorMessage = error.message || "An unexpected error occurred during quiz generation.";
+        let errorMessage = "An unexpected error occurred during quiz generation.";
+        if (error instanceof Error) {
+            errorMessage = error.message;
+        }
         return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }

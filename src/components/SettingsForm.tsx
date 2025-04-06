@@ -34,7 +34,7 @@ interface SettingsFormProps {
     onCancel: () => void;
 }
 
-const SettingsForm: React.FC<SettingsFormProps> = ({ lang, t, initialSettings, onSave, onCancel }) => {
+const SettingsForm: React.FC<SettingsFormProps> = ({ /* lang, // Removed - Not used directly */ t, initialSettings, onSave, onCancel }) => {
     const [settings, setSettings] = useState<QuizSettings>(initialSettings);
     const [error, setError] = useState<string | null>(null);
 
