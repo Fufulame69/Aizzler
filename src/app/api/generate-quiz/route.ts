@@ -132,7 +132,9 @@ export async function POST(request: NextRequest) {
             console.error("--- Raw API Response Text ---");
             console.error(responseText);
             console.error("-----------------------------");
-            return NextResponse.json({ error: "Failed to parse quiz data from API response." }, { status: 500 });
+            // Include the start of the problematic text in the error response
+            const preview = responseText.substring(0, 100); // Get first 100 chars
+            return NextResponse.json({ error: `Failed to parse quiz data from API. Response started with: "${preview}"...` }, { status: 500 });
         }
 
     } catch (error: unknown) {
