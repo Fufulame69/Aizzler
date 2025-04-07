@@ -20,7 +20,7 @@ export interface QuizQuestion {
 // Type for the expected API response (a list of questions)
 export type QuizData = QuizQuestion[];
 
-const MODEL_NAME = "gemini-1.5-flash"; // Or your preferred model
+const MODEL_NAME = "gemini-2.5-pro-preview-03-25"; // Or your preferred model
 const API_KEY = process.env.GEMINI_API_KEY;
 
 if (!API_KEY) {
